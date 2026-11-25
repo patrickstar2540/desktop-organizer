@@ -1,0 +1,20 @@
+# 运行期数据（含个人桌面图标名、清理记录、本机路径，绝不入库）
+data/
+dist/
+
+# 内置 Node 运行时（便携版才会复制，仓库里不放）
+node/
+
+# 日志
+*.log
+data/error.log
+
+# 编译中间产物
+tools/launcher/obj/
+tools/launcher/bin/
+
+# 系统垃圾
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp

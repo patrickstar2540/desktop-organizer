@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>桌面整理器</title>
+<link rel="icon" type="image/png" sizes="256x256" href="/icon-256.png">
+<link rel="apple-touch-icon" href="/icon-256.png">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body data-page="organize">
+<div id="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7.5A2 2 0 0 1 5 5.5h4l2 2.2h8a2 2 0 0 1 2 2v7.8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7.5Z"/>
+          <path d="M8.5 13.5h7M12 10v7"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="title">桌面整理器</div>
+        <div class="sub" id="desktopPath">正在读取桌面…</div>
+      </div>
+    </div>
+
+    <nav class="topnav" id="topNav">
+      <button class="topnav-i is-on" data-nav="organize">整理桌面</button>
+      <button class="topnav-i" data-nav="backup">
+        桌面备份
+        <i class="topnav-dot" id="bkDot" title="还没备份过桌面"></i>
+      </button>
+      <button class="topnav-i" data-nav="clean">清理桌面</button>
+    </nav>
+
+    <div class="top-actions">
+      <button class="ghost" id="btnHistory">整理记录</button>
+      <button class="ghost" id="btnRefresh">重新扫描</button>
+      <button class="ghost close" id="btnClose" title="退出">✕</button>
+    </div>
+  </header>
+
+  <!-- ================= 整理桌面 ================= -->
+  <main class="content" id="viewOrganize">
+    <section class="block hidden" id="backupBanner">
+      <div class="bk-banner">
+        <div class="bk-banner-ic" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m8 9 4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+        </div>
+        <div class="bk-banner-text">
+          <b>还没备份过桌面</b>
+          <span>先存一份，之后不管整理成什么样都能一键退回去。备份只复制，不会删改桌面上的任何东西。</span>
+        </div>
+        <button class="btn primary" id="btnBackupNow">去备份</button>
+        <button class="link bk-later" id="btnBackupLater">先不用</button>
+      </div>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h2><span class="step">1</span>选择要整理的类别</h2>
+        <div class="head-actions">
+          <span class="muted" id="selSummary">已选 0 类</span>
+          <button class="link" id="btnAll">全选</button>
+          <button class="link" id="btnNone">清空</button>
+        </div>
+      </div>
+      <div class="grid" id="catGrid"></div>
+      <p class="hintline">
+        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+        桌面上的快捷方式、系统图标、隐藏文件不会被移动。
+      </p>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h2><span class="step">2</span>选择文件存放位置</h2>
+        <span class="muted" id="targetTip"></span>
+      </div>
+      <div class="target-row">
+        <input id="targetInput" class="input" spellcheck="false" placeholder="例如 D:\桌面归档">
+        <button class="btn" id="btnPick">浏览…</button>
+        <button class="btn" id="btnOpenTarget">打开文件夹</button>
+      </div>
+      <div class="field-err hidden" id="targetErr"></div>
+      <div class="quick" id="quickPaths"></div>
+
+      <label class="switch-row">
+        <input type="checkbox" id="chkShortcut" checked>
+        <span class="switch-text">整理完成后在桌面创建快捷方式，以后点它就能打开</span>
+        <input id="shortcutName" class="input small" maxlength="30" value="已整理的文件">
+      </label>
+    </section>
+
+    <section class="block">
+      <div class="block-head">
+        <h2>桌面快捷方式重排 <span class="tag-exp">实验性</span></h2>
+        <span class="muted">不会移动任何文件</span>
+      </div>
+      <div class="sc-entry">
+        <div class="sc-entry-text">
+          <p>把桌面上的快捷方式分成「日常软件 / 专业（小众）软件 / 游戏」三组，整组挪到桌面的左边或右边，一眼就能找到。</p>
+          <p>可按桌面原样显示图标，也能切成紧凑的名字列表；拖一拖就分组，排错了随时撤销 —— 不删除、不移动、不改名任何文件。</p>
+        </div>
+        <button class="btn" id="btnShortcuts">打开重排面板</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- ================= 桌面备份 ================= -->
+  <main class="content hidden" id="viewBackup">
+    <div class="bk-page">
+      <section class="bk-hero">
+        <div class="bk-hero-main">
+          <div class="bk-kicker">桌面备份</div>
+          <h1 id="bkTitle">先把桌面存一份，再放心动手</h1>
+          <p class="bk-lead" id="bkLead">备份会复制桌面上的文件、文件夹和快捷方式，同时记下每个图标现在的位置。</p>
+          <div class="bk-hero-actions">
+            <button class="btn primary lg" id="bkCreate">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10"/><path d="m8 9 4 4 4-4"/><path d="M4 15v3a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-3"/></svg>
+              <span id="bkCreateLabel">立即备份</span>
+            </button>
+            <button class="btn lg" id="bkOpenFolder">打开备份文件夹</button>
+          </div>
+          <div class="bk-hero-note" id="bkNote">只复制、不删除 · 没变过的文件不会重复占空间 · 最多保留 5 份</div>
+        </div>
+        <div class="bk-hero-stats">
+          <div class="bk-hs"><b id="bkStatItems">—</b><span>桌面项目</span></div>
+          <div class="bk-hs"><b id="bkStatSize">—</b><span>当前体积</span></div>
+          <div class="bk-hs"><b id="bkStatCount">0</b><span>已有备份</span></div>
+        </div>
+      </section>
+
+      <section class="bk-card">
+        <div class="bk-card-head">
+          <h2>备份存放位置</h2>
+          <span class="muted" id="bkFree"></span>
+        </div>
+        <div class="path-row">
+          <input id="bkRootInput" class="input" spellcheck="false" placeholder="例如 D:\桌面备份">
+          <button class="btn" id="bkPick">浏览…</button>
+          <button class="btn" id="bkOpen">打开文件夹</button>
+        </div>
+        <div class="field-err hidden" id="bkRootErr"></div>
+        <div class="quick" id="bkQuick"></div>
+        <div class="bk-hint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+          <span>存档实际放在 <code id="bkReal">…</code>。这个文件夹同时也是「整理桌面」的默认存放位置，整理那边还能单独改。</span>
+        </div>
+      </section>
+
+      <section class="bk-card">
+        <div class="bk-card-head">
+          <h2>历史备份</h2>
+          <span class="muted" id="bkListTip"></span>
+        </div>
+        <div id="bkList"></div>
+      </section>
+
+      <section class="bk-card">
+        <div class="bk-card-head">
+          <h2>回到最初的样子</h2>
+          <span class="muted">不备份也能用</span>
+        </div>
+        <div id="bkOrigin"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- ================= 清理桌面 ================= -->
+  <main class="content hidden" id="viewClean">
+    <div class="cl-page">
+      <section class="cl-hero">
+        <div class="cl-hero-main">
+          <div class="bk-kicker">清理桌面</div>
+          <h1>把点不开的图标收拾干净</h1>
+          <p class="bk-lead">先扫描、看清单，再决定清哪些。只动桌面上的快捷方式，不碰文件本身；删掉的会进回收站，本地还留一份能放回桌面。</p>
+          <div class="cl-hero-tags">
+            <span class="cl-htag">只清快捷方式</span>
+            <span class="cl-htag">删除进回收站</span>
+            <span class="cl-htag">随时放回桌面</span>
+          </div>
+        </div>
+        <div class="cl-hero-stats">
+          <div class="cl-stat"><b id="clStatBroken">—</b><span>当前检测到的失效图标</span></div>
+          <div class="cl-stat"><b id="clStatLogs">0</b><span>留底记录</span></div>
+          <div class="cl-stat"><b id="clStatRestored">0</b><span>已放回桌面</span></div>
+        </div>
+      </section>
+
+      <section class="cl-gate" id="clGate"></section>
+
+      <section class="block">
+        <div class="block-head">
+          <h2>清理项目</h2>
+          <span class="muted" id="clCountTip"></span>
+        </div>
+        <div class="cl-cards" id="clCards"></div>
+      </section>
+
+      <section class="block">
+        <div class="block-head">
+          <h2>最近清理</h2>
+          <span class="muted">清掉的快捷方式都留了底，可以放回桌面</span>
+        </div>
+        <div class="cl-hist" id="clHist"></div>
+      </section>
+    </div>
+  </main>
+
+  <footer class="bar" id="bar">
+    <div class="bar-info">
+      <span><strong id="statTotal">0</strong> 个文件待整理</span>
+      <span class="sep">·</span>
+      <span id="statCats">已选 0 类</span>
+      <span class="warn" id="statWarn"></span>
+    </div>
+    <div class="bar-actions">
+      <button class="btn" id="btnPreview">先看看方案</button>
+      <button class="btn primary" id="btnRun">开始整理</button>
+    </div>
+  </footer>
+</div>
+
+<div id="undoBar" class="undo-bar hidden">
+  <span class="undo-ic" aria-hidden="true">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7H5v4"/><path d="M5.6 11a7 7 0 1 1 1.2 5.4"/></svg>
+  </span>
+  <span class="undo-text" id="undoText"></span>
+  <button class="btn undo-btn" id="undoBtn">撤销</button>
+  <button class="undo-x" id="undoClose" title="关闭提示">✕</button>
+</div>
+
+<div id="modalRoot"></div>
+<div id="toast" class="toast"></div>
+<script src="/app.js"></script>
+</body>
+</html>
